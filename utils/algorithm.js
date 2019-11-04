@@ -1,15 +1,16 @@
-exports.list_permutation = list => {
-    let permArr = [];
-    let usedChars = [];
-    for (let i = 0; i < list.length; i++) {
-        let ch = list.splice(i, 1)[0];
-        usedChars.push(ch);
+let permutations = [];
+let used = [];
+
+exports.permutations = list => {
+    for (let i = 0; i < list.length; i ++) {
+        let element = list.splice(i, 1)[0];
+        used.push(element);
         if (list.length == 0) {
-            permArr.push(usedChars.slice());
+            permutations.push(used.slice());
         }
-        list_permutation(list);
-        list.splice(i, 0, ch);
-        usedChars.pop();
+        this.permutations(list);
+        list.splice(i, 0, element);
+        used.pop();
     }
-    return permArr;
+    return permutations;
 };
