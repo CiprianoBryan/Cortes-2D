@@ -1,86 +1,13 @@
-const copyArray = require('../../utils/copyArray');
-
-class Material {
-    constructor(materialJson) {
-        this.id = materialJson.id;
-        this.height = materialJson.height;
-        this.width = materialJson.width;
-    }
-    rotate() {
-        [this.height, this.width] = [this.width, this.height];
-    }
-    copy() {
-        return new Material({
-            'id': this.id,
-            'height': this.height,
-            'width': this.width
-        });
-    }
-};
-
-class Point {
-	constructor(x, y) {
-		this.x = x;
-		this.y = y;
-	}
-	moveDown() {
-		this.y ++;
-	}
-	moveLeft() {
-		this.x --;
-	}
-};
-
-class Rectangle {
-	constructor(lowerLeft,upperRight) {
-		this.lowerLeft = lowerLeft;
-		this.upperRight = upperRight;
-	}
-};
-
-class Input {
-    constructor(table, materials) {
-        this.table = table;
-        this.materials = materials;
-    }
-    copy() {
-        return new Input(this.table.copy(), copyArray(this.materials));
-    }
-};
-
-// function getList(len) {
-//     list = [];
-//     for (let i = 0; i < len; i++) {
-//         list.push(i)
-        
-//     }
-//     return list;
-// }
-
-// function moveDown(rectangle) {
-// 	rectangle.lowerLeft.moveDown();
-// 	rectangle.upperRight.moveDown();
-// 	return rectangle;
-// }
-
-// function moveLeft(rectangle) {
-// 	rectangle.lowerLeft.moveLeft();
-// 	rectangle.upperRight.moveLeft();
-// 	return rectangle;
-// }
-
-// function haveCross(r1, r2) {
-// 	let haveCrossX = (r1.lowerLeft.x <= r2.upperRight.x && r2.lowerLeft.x <= r1.upperRight.x);
-// 	let haveCrossY = (r2.upperRight.y <= r1.lowerLeft.y && r1.upperRight.y <= r2.lowerLeft.y);
-// 	return haveCrossX && haveCrossY;
-// }
+const point = require('../../utils/point');
+const rectangle = require('../../utils/rectangle');
+const object = require('../../utils/object');
 
 // function isOccupied(space, occupiedSpaces, table) {
 // 	if (space.lowerLeft.y > table.height || space.lowerLeft.x < 1) {
 // 		return true;
 //     }
 //     occupiedSpaces.forEach(rectangle => {
-//         if(haveCross(space, rectangle)){
+//         if (haveCross(space, rectangle)) {
 //             return true;
 //         }
 //     });
@@ -189,10 +116,10 @@ class Input {
 // }
 
 function applyRotate(input, mask) {
-    materialsCount = input.materials.length;
+    let materialsCount = input.materials.length;
     for (let i = 0; i < materialsCount; i ++) {
         if ((mask >> i)&1) {
-            input.materials[i].rotate();
+            rectangle.rotate(input.materials[i]);
         }
     }
     return input;
@@ -210,7 +137,7 @@ function applyRotate(input, mask) {
 
 function permutate(input) {
     return input;
-    // list = getList(input.materials.length);
+    // list = object.list(input.materials.length);
     // ans = input;
     // do {
     //     inputPermutate = applyPermutate(input, list);
@@ -220,16 +147,11 @@ function permutate(input) {
 }
 
 function rotateAndPermutate(input) {
-    materialsCount = input.materials.length;
-    ans = input;
-    for (let mask = 0; mask < (1 << materialsCount); mask ++) {
-        console.log(input);
-        // inputRotate = applyRotate(input, mask);
-        console.log(input.copy());
-        inputRotate = applyRotate(input.copy(), mask);
+    let materialsCount = input.materials.length;
+    let ans = input;
+    for (let mask = 0; mask < 1 << materialsCount; mask ++) {
+        inputRotate = applyRotate(object.copy(input), mask);
         // ansPossible = permutate(inputRotate);
-        console.log(inputRotate);
-        console.log('********************************');
         // ans = getBestAns(ans, ansPossible);
     }
     return ans;
@@ -239,19 +161,8 @@ function solve(input) {
     return rotateAndPermutate(input);
 }
 
-function inputJsonToClass(inputJson) {
-    table = new Material(inputJson.table);
-    materials = [];
-    inputJson.materials.forEach(material => {
-        materials.push(new Material(material));
-    });
-    return new Input(table, materials);
-}
-
-function resolveCut(inputJson) {
-    inputClass = inputJsonToClass(inputJson);
-    // console.log(inputClass);
-    output = solve(inputClass);
+function resolveCut(input) {
+    output = solve(input);
     // console.log(getCost(output));
     // tables = getTables(output);
     // for (let i = 0; i < tables.length; i ++) {
