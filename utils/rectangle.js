@@ -34,6 +34,6 @@ exports.area2 = rectangle => {
 
 exports.haveCross = (r1, r2) => {
 	let haveCrossX = (r1.lowerLeft.x <= r2.upperRight.x && r2.lowerLeft.x <= r1.upperRight.x);
-	let haveCrossY = (r2.upperRight.y <= r1.lowerLeft.y && r1.upperRight.y <= r2.lowerLeft.y);
+    let haveCrossY = (r2.upperRight.y <= r1.lowerLeft.y && r1.upperRight.y <= r2.lowerLeft.y);
 	return haveCrossX && haveCrossY;
 };

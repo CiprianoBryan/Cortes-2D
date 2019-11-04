@@ -1,5 +1,3 @@
-var sync = require('sync');
-
 const Point = require('../../utils/point');
 const Rectangle = require('../../utils/rectangle');
 const Object = require('../../utils/object');
@@ -10,12 +8,13 @@ const INF = 10000*10000;
 function isOccupied(space, occupiedSpaces, table) {
 	if (space.lowerLeft.y > table.height || space.lowerLeft.x < 1) {
 		return true;
-    }
-    occupiedSpaces.forEach(rectangle => {
+	}
+	for (let i = 0; i < occupiedSpaces.length; i ++) {
+		let rectangle = occupiedSpaces[i];
         if (Rectangle.haveCross(space, rectangle)) {
             return true;
         }
-    });
+    }
 	return false;
 }
 
@@ -33,7 +32,7 @@ function moveSpace(space, occupiedSpaces, table) {
     		isMove = true;
 		}
 		while (!isOccupied(Rectangle.moveLeft(Object.copy(space)), occupiedSpaces, table)) {
-    		space = Rectangle.moveLeft(Object.copy(space));
+			space = Rectangle.moveLeft(Object.copy(space));
     		isMove = true;
     		while (!isOccupied(Rectangle.moveDown(Object.copy(space)), occupiedSpaces, table)) {
 	    		space = Rectangle.moveDown(Object.copy(space));
@@ -67,11 +66,9 @@ function isSpaceBigger(space, table) {
 	return exceededX || exceededY;
 }
 
-function getCost(ans) {
-	console.log('ans:');
-	console.log(ans);
-	console.log('******************');
+function getSolution(ans) {
 	let cost = 0;
+	let tables = [];
 	let occupiedSpaces = [];
     let materialsCount = ans.materials.length;
     for (let i = 0; i < materialsCount; i++) {
@@ -82,39 +79,24 @@ function getCost(ans) {
     		return INF;
 		}
     	if (!moveSpace(Object.copy(space), occupiedSpaces, ans.table)) {
-    		cost += Rectangle.area2(ans.table) - getSumAreas(occupiedSpaces);
+			cost += Rectangle.area2(ans.table) - getSumAreas(occupiedSpaces);
+			tables.push(occupiedSpaces);
     		occupiedSpaces.clear();
     		moveSpace(Object.copy(space), occupiedSpaces, ans.table);
 		}
 	}
 	if (occupiedSpaces.length) {
 		cost += Rectangle.area2(ans.table) - getSumAreas(occupiedSpaces);
-	}
-	return cost;
-}
-
-function getTables(ans) {
-	let tables = [];
-	let occupiedSpaces = [];
-	let materialsCount = ans.materials.length;
-    for (let i = 0; i < materialsCount; i ++) {
-    	let lowerLeft = Point.new(ans.table.width - ans.materials[i].width + 1, 0);
-    	let upperRight = Point.new(ans.table.width, - ans.materials[i].height + 1);
-    	let space = Rectangle.new(lowerLeft, upperRight);
-    	if (!moveSpace(Object.copy(space), occupiedSpaces, ans.table)) {
-    		tables.push(occupiedSpaces);
-    		occupiedSpaces.clear();
-    		moveSpace(Object.copy(space), occupiedSpaces, ans.table);
-		}
-	}
-	if (occupiedSpaces.length) {
 		tables.push(occupiedSpaces);
 	}
-	return tables;
+	return {
+		cost: cost,
+		tables: tables
+	};
 }
 
 function getBestAns(ans1, ans2) {
-    return getCost(ans1) < getCost(ans2)? ans1: ans2;
+    return getSolution(ans1).cost < getSolution(ans2).cost? ans1: ans2;
 }
 
 function applyRotate(input, mask) {
@@ -137,52 +119,27 @@ function applyPermutate(input, permutate) {
     return input;
 }
 
-function permutate(input) {
+function permutate(input, Return) {
 	let ans = Object.copy(input);
 	let list = Object.list(input.materials.length);
 	let permutations = Algorithm.permutations(list);
-	console.log(input);
-	console.log(permutations);
-	console.log('-------------------------');
-	// console.log(ans);
-    permutations.forEach(permutate => {
+    for (let i = 0; i < permutations.length; i ++) {
+		let permutate = permutations[i];
 		let inputPermutate = applyPermutate(Object.copy(input), permutate);
-		console.log('init comparate:');
-		console.log(ans);
-		console.log(permutate);
-		console.log(inputPermutate);
-		console.log('end comparate:');
 		ans = getBestAns(ans, inputPermutate);
-		console.log('ans in permutate:');
-		console.log(ans);
-		resolve(ans); // delete
-    });
-    // return ans;
+	};
+	Return(ans);
 }
 
 function rotateAndPermutate(input) {
     let materialsCount = input.materials.length;
     let ans = input;
     for (let mask = 0; mask < 1 << materialsCount; mask ++) {
-		console.log("in mask: " + mask);
-		console.log("***********************");
-		console.log("***********************");
 		let inputRotate = applyRotate(Object.copy(input), mask);
-		console.log('> inputRotate:');
-		console.log(inputRotate);
-		let ansPossible = new Promise(permutate(inputRotate)).then(function(data) {
-			console.log("> ansPossible:");
-			console.log(ansPossible);
-		});
-		// console.log("> ansPossible:");
-		// console.log(ansPossible);
-		console.log("***********************");
-		console.log("***********************");
-		console.log("***********************");
+		permutate(inputRotate, (res) => {ansPossible = res});
 		ans = getBestAns(ans, ansPossible);
-		return ans; // delete
     }
-    // return ans;
+    return ans;
 }
 
 function solve(input) {
@@ -190,16 +147,16 @@ function solve(input) {
 }
 
 function resolveCut(input) {
-    let output = solve(input);
-    // console.log("cost: " + getCost(output));
-    // let tables = getTables(output);
-    // for (let i = 0; i < tables.length; i ++) {
-    //     let table = tables[i];
-    //     console.log("TABLE %d:", i + 1);
-    //     table.forEach(material => {
-    //         console.log("[x1 - x2] [y1 - y2] = [%d - %d] [%d - %d]", material.lowerLeft.x, material.upperRight.x, material.upperRight.y, material.lowerLeft.y);
-    //     });
-    // }
+	let output = solve(input);
+	let solution = getSolution(output);
+    console.log("cost: " + solution.cost);
+    for (let i = 0; i < solution.tables.length; i ++) {
+        let table = solution.tables[i];
+        console.log("TABLE %d:", i + 1);
+        table.forEach(material => {
+            console.log("[x1 - x2] [y1 - y2] = [%d - %d] [%d - %d]", material.lowerLeft.x, material.upperRight.x, material.upperRight.y, material.lowerLeft.y);
+        });
+    }
 }
 
 module.exports = resolveCut;
