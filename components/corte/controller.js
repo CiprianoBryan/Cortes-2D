@@ -6,7 +6,7 @@ const Algorithm = require('../../utils/algorithm');
 const INF = 10000*10000;
 
 function isOccupied(space, occupiedSpaces, table) {
-	if (space.lowerLeft.y > table.height || space.lowerLeft.x < 1) {
+	if (space.lowerLeft.y < 1 || space.lowerLeft.x < 1) {
 		return true;
 	}
 	for (let i = 0; i < occupiedSpaces.length; i ++) {
@@ -19,7 +19,7 @@ function isOccupied(space, occupiedSpaces, table) {
 }
 
 function isInsideTable(space, table) {
-	return space.upperRight.y >= 1;
+	return space.upperRight.y <= table.height;
 }
 
 function moveSpace(space, occupiedSpaces, table) {
@@ -62,7 +62,7 @@ function getSumAreas(occupiedSpaces) {
 
 function isSpaceBigger(space, table) {
 	let exceededX = (space.upperRight.x - space.lowerLeft.x + 1 > table.width);
-	let exceededY = (space.lowerLeft.y - space.upperRight.y + 1 > table.height);
+	let exceededY = (space.upperRight.y - space.lowerLeft.y + 1 > table.height);
 	return exceededX || exceededY;
 }
 
@@ -72,8 +72,8 @@ function getSolution(ans) {
 	let occupiedSpaces = [];
     let materialsCount = ans.materials.length;
     for (let i = 0; i < materialsCount; i++) {
-    	let lowerLeft = Point.new(ans.table.width - ans.materials[i].width + 1, 0);
-    	let upperRight = Point.new(ans.table.width, - ans.materials[i].height + 1);
+    	let lowerLeft = Point.new(ans.table.width - ans.materials[i].width + 1, ans.table.height + 1);
+    	let upperRight = Point.new(ans.table.width, ans.table.height + 1 + ans.materials[i].height - 1);
     	let space = Rectangle.new(lowerLeft, upperRight);
     	if (isSpaceBigger(space, ans.table)) {
     		return {
@@ -92,7 +92,6 @@ function getSolution(ans) {
 		cost += Rectangle.area2(ans.table) - getSumAreas(occupiedSpaces);
 		tables.push(occupiedSpaces);
 	}
-	// console.log(tables);
 	return {
 		cost: cost,
 		tables: tables
@@ -153,12 +152,7 @@ function solve(input) {
 function resolveCut(input) {
 	let output = solve(input);
 	let solution = getSolution(output);
-	console.log("sol:" + solution);
-	console.log('**********************************');
-	console.log('**********************************');
-	console.log('**********************************');
 	console.log("cost: " + solution.cost);
-	console.log(solution.tables);
     for (let i = 0; i < solution.tables.length; i ++) {
         let table = solution.tables[i];
         console.log("TABLE %d:", i + 1);

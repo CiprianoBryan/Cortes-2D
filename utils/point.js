@@ -4,7 +4,7 @@ exports.new = (x, y) => ({
 });
 
 exports.moveDown = point => {
-    point.y ++;
+    point.y --;
     return point;
 };
 
