@@ -76,12 +76,15 @@ function getSolution(ans) {
     	let upperRight = Point.new(ans.table.width, - ans.materials[i].height + 1);
     	let space = Rectangle.new(lowerLeft, upperRight);
     	if (isSpaceBigger(space, ans.table)) {
-    		return INF;
+    		return {
+				cost: INF,
+				tables: []
+			};
 		}
     	if (!moveSpace(Object.copy(space), occupiedSpaces, ans.table)) {
 			cost += Rectangle.area2(ans.table) - getSumAreas(occupiedSpaces);
 			tables.push(occupiedSpaces);
-    		occupiedSpaces.clear();
+    		occupiedSpaces = [];
     		moveSpace(Object.copy(space), occupiedSpaces, ans.table);
 		}
 	}
@@ -89,6 +92,7 @@ function getSolution(ans) {
 		cost += Rectangle.area2(ans.table) - getSumAreas(occupiedSpaces);
 		tables.push(occupiedSpaces);
 	}
+	// console.log(tables);
 	return {
 		cost: cost,
 		tables: tables
@@ -149,7 +153,12 @@ function solve(input) {
 function resolveCut(input) {
 	let output = solve(input);
 	let solution = getSolution(output);
-    console.log("cost: " + solution.cost);
+	console.log("sol:" + solution);
+	console.log('**********************************');
+	console.log('**********************************');
+	console.log('**********************************');
+	console.log("cost: " + solution.cost);
+	console.log(solution.tables);
     for (let i = 0; i < solution.tables.length; i ++) {
         let table = solution.tables[i];
         console.log("TABLE %d:", i + 1);
